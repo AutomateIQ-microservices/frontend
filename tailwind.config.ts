@@ -11,6 +11,9 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        slate:{
+          100:"#ebe9df"
+        }
       },
     },
   },

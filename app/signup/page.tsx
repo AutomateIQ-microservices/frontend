@@ -4,12 +4,17 @@ import AppBar from "@/components/AppBar";
 import PrimaryButton from "@/components/buttons/PrimaryButton";
 import CheckedFeature from "@/components/CheckedFeature";
 import Input from "@/components/InputField";
+import axios from "axios";
 import { useState } from "react";
+import { BACKEND_URL } from "../config";
+import { useRouter } from "next/navigation";
 
 const Signup=()=>{
     const [name,setName]=useState("");
     const [email,setEmail]=useState("");
     const [password,setPassword]=useState("");
+
+    const router=useRouter();
     return <div>
         <AppBar/>
         <div className="flex justify-center">
@@ -32,20 +37,26 @@ const Signup=()=>{
                 <div className="flex-1 pt-6 px-4 border pb-6 mt-12">
                     <Input label="Name" placeholder="Your Name" onChange={(e)=>{
                         setName(e.target.value);
-                        console.log(name);
                     }}/>
 
                     <Input label="Email" placeholder="Your Email" onChange={(e)=>{
                         setEmail(e.target.value);
-                        console.log(email);
                     }}/>
 
                     <Input label="Password" placeholder="Your Password" onChange={(e)=>{
                         setPassword(e.target.value);
-                        console.log(password);
                     }} type="password"/>
                     <div className="pt-4">
-                        <PrimaryButton onClick={()=>{}} size="big">Get started free</PrimaryButton>
+                        <PrimaryButton onClick={async()=>{
+                            const response=await axios.post(`${BACKEND_URL}/api/v1/users/signup`,{
+                                "name":name,
+                                "email":email,
+                                "password":password
+                            })
+                            localStorage.setItem("token",response.data);
+                            console.log(response.data);
+                            router.push("/dashboard");
+                        }} size="big">Get started free</PrimaryButton>
                     </div>
                 </div>
             </div>

@@ -4,10 +4,16 @@ import PrimaryButton from "@/components/buttons/PrimaryButton"
 import CheckedFeature from "@/components/CheckedFeature"
 import  Input  from "@/components/InputField"
 import { useState } from "react"
+import { BACKEND_URL } from "../config"
+import axios from "axios"
+import { useRouter } from "next/navigation"
 
 const Login=()=>{
     const [email,setEmail]=useState("");
     const [password,setPassword]=useState("");
+
+    const router=useRouter();
+
     return <div>
     <AppBar/>
     <div className="flex justify-center">
@@ -30,16 +36,22 @@ const Login=()=>{
             <div className="flex-1 pt-6 px-4 border rounded-md pb-6 mt-12">
                 <Input label="Email" placeholder="Your Email" onChange={(e)=>{
                     setEmail(e.target.value);
-                    console.log(email);
                 }}/>
 
                 <Input label="Password" placeholder="Your Password" onChange={(e)=>{
                     setPassword(e.target.value);
-                    console.log(password);
                 }} type="password"/>
 
                 <div className="pt-4">
-                    <PrimaryButton onClick={()=>{}} size="big">Log In</PrimaryButton>
+                    <PrimaryButton onClick={async()=>{
+                        const response=await axios.post(`${BACKEND_URL}/api/v1/users/signin`,{
+                            "email":email,
+                            "password":password
+                        });
+                        localStorage.setItem("token",response.data);
+                        console.log(response.data);
+                        router.push("/dashboard");
+                    }} size="big">Log In</PrimaryButton>
                 </div>
             </div>
         </div>

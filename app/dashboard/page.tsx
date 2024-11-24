@@ -3,7 +3,7 @@ import AppBar from "@/components/AppBar";
 import DarkButton from "@/components/buttons/DarkButton";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { BACKEND_URL } from "../config";
+import { BACKEND_URL, HOOKS_URL } from "../config";
 import LinkButton from "@/components/buttons/LinkButton";
 import { useRouter } from "next/navigation";
 
@@ -14,14 +14,16 @@ function ZapTable({zaps}:{zaps:Zaps[]}){
                 <div className="flex-1">Work flow</div>
                 <div className="flex-1">Name</div>
                 <div className="flex-1">Last Edit</div>
+                <div className="flex-1">WebHook URL</div>
                 {/* <div className="flex-1">Running</div> */}
                 <div className="flex-1">Go</div>
             </div>
             {zaps.map(zap=>
                 <div key={zap.id} className="flex border-b py-4">
-                    <div className="flex-1">{zap.triggerName+" -> "}{zap.actionNames.map(action=> action+ " -> ")}</div>
+                    <div className="flex-1">{zap.triggerName.name+" -> "}{zap.actionNames.map(action=> action.name+ " -> ")}</div>
                     <div className="flex-1">{zap.id}</div>
                     <div className="flex-1">November 11</div>
+                    <div className="flex-1"> {`${HOOKS_URL}/hooks/catch/1/${zap.id}`}</div>
                     <div className="flex-1"><LinkButton onClick={()=>{
                         router.push("/zap/"+zap.id)
                     }}>Go</LinkButton></div>
@@ -59,8 +61,16 @@ const Dashboard=()=>{
 
 interface Zaps{
     "id":string,
-    "triggerName":string,
-    "actionNames":string[]
+    "triggerName":{
+        id:string,
+        image:string | null
+        name:string
+    },
+    "actionNames":{
+        id:string,
+        image:string | null
+        name:string
+    }[]
 }
 function useZaps(){
     const [loading,setLoading]=useState(true);

@@ -3,6 +3,7 @@ import { BACKEND_URL } from "@/app/config";
 import AppBar from "@/components/AppBar";
 import LinkButton from "@/components/buttons/LinkButton";
 import PrimaryButton from "@/components/buttons/PrimaryButton";
+import Input from "@/components/InputField";
 import ZapCell from "@/components/ZapCell";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -50,7 +51,8 @@ const CreateZap=()=>{
     }>();
     const [selectedActions,setSelectedActions]=useState<{
         available_action_id:string | undefined,
-        availableActionName:string | undefined
+        availableActionName:string | undefined,
+        metadata:any
     }[]>([]);
 
 
@@ -75,7 +77,7 @@ const CreateZap=()=>{
                         "metadata": {},
                         "actions": selectedActions?.map(a=>({
                                 "available_action_id":a.available_action_id,
-                                "metadata":{} 
+                                "metadata":a.metadata 
                             })
                     )
                     },{
@@ -110,14 +112,15 @@ const CreateZap=()=>{
                     <LinkButton onClick={()=>{
                         setSelectedActions(a=>[...a,{
                             available_action_id:"",
-                            availableActionName:""
+                            availableActionName:"",
+                            metadata:{}
                         }])
                     }}><div className="text-2xl">+
                         </div></LinkButton>
                 </div>
             </div>
         </div>
-        {selectedModalIndex && <Modal index={selectedModalIndex} onSelect={(props: null |{name:string ,id:string})=>{
+        {selectedModalIndex && <Modal index={selectedModalIndex} onSelect={(props: null |{name:string ,id:string , metadata:any})=>{
             if(props==null){
                 setSelectedModalIndex(null);
                 return;
@@ -134,7 +137,8 @@ const CreateZap=()=>{
                     let newActions=[...a];
                     newActions[selectedModalIndex-2]={
                         available_action_id:props?.id,
-                        availableActionName:props?.name
+                        availableActionName:props?.name,
+                        metadata:props.metadata
                     }
                     return newActions;
                 });
@@ -149,11 +153,20 @@ const CreateZap=()=>{
 export default CreateZap;
 
 
-function Modal({index,onSelect,availableItems}:{index:number,onSelect:(props:null | {name:string,id:string})=>void ,  availableItems:{
+function Modal({index,onSelect,availableItems}:{index:number,onSelect:(props:null | {name:string,id:string,metadata:any})=>void ,  availableItems:{
     id:string,
     name:string,
     image:string
 }[]}){
+
+    const [step,setStep]=useState(0);
+    const [selectedAction,setSelectedAction]=useState<{
+        id:string,
+        name:string
+    }>();
+    const isTrigger=index===1;
+
+   
 
     return <div id="default-modal"   className="fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full flex bg-slate-100 bg-opacity-85">
     <div className="relative p-4 w-full max-w-2xl max-h-full">
@@ -172,17 +185,40 @@ function Modal({index,onSelect,availableItems}:{index:number,onSelect:(props:nul
                 </button>
             </div>
             <div className="p-4 md:p-5 space-y-4">
-                {availableItems.map(({id,name,image})=>{
-                    return <div key={id} className="flex border p-4 cursor-pointer hover:bg-slate-100" onClick={()=>{
-                        onSelect({
-                            id,name
-                        })
-                        }  
-                    }>
-                        <img src={image} width="30" className="rounded-full"></img>
-                        <div className="flex flex-col justify-center pl-2">{name}</div>
-                    </div>
-                })}
+                {step===1 && selectedAction?.name=="email" && <EmailSelctor setMetadata={(metadata)=>{
+                    onSelect({
+                        ...selectedAction,
+                        metadata
+                        
+                    })
+                }}/>}
+                {step===1 && selectedAction?.name=="message" && <MessageSelector setMetadata={(metadata)=>{
+                    onSelect({
+                        ...selectedAction,
+                        metadata
+                    })
+                }}/>}
+                {step===0 && <div> {availableItems.map(({id,name,image})=>{
+                        return <div key={id} className="flex border p-4 cursor-pointer hover:bg-slate-100" onClick={()=>{
+                                if(isTrigger){
+                                    onSelect({
+                                        id,name,
+                                        metadata:{}
+                                    })
+                                }else{
+                                    setStep(s=>s+1);
+                                    setSelectedAction({
+                                        id,
+                                        name
+                                    })
+                                }
+                            }  
+                        }>
+                            <img src={image} width="30" className="rounded-full"></img>
+                            <div className="flex flex-col justify-center pl-2">{name}</div>
+                        </div>
+                    })}</div>
+                }
             </div>
         </div>
     </div>
@@ -190,6 +226,34 @@ function Modal({index,onSelect,availableItems}:{index:number,onSelect:(props:nul
 }
 
 
+function EmailSelctor({setMetadata}:{
+    setMetadata:(params:any)=>void;
+}){
+    const [email,setEmail]=useState("");
+    const [body,setBody]=useState("");
+
+    return <div>
+        <Input type="text" label="To" placeholder="to address" onChange={(e)=>{setEmail(e.target.value)}}/>
+        <Input type="text" label="Body" placeholder="body" onChange={(e)=>{setBody(e.target.value)}}/>
+        <PrimaryButton onClick={()=>{
+            setMetadata({email,body})
+        }}> Submit </PrimaryButton>
+    </div>
+}
+
+function MessageSelector({setMetadata}:{
+    setMetadata:(params:any)=>void;
+}){
+    const [message,setMessage]=useState("");
+    const [body,setBody]=useState("");
+    return <div>
+        <Input type="text" label="To" placeholder="to address" onChange={(e)=>{setMessage(e.target.value)}}/>
+        <Input type="text" label="Body" placeholder="body" onChange={(e)=>{setBody(e.target.value)}}/>
+        <PrimaryButton onClick={()=>{
+            setMetadata({message,body})
+        }}> Submit </PrimaryButton>
+    </div>
+}
 
 
 //final request to be send to crete the zap POST:localhost:5768/api/v1/zaps/
